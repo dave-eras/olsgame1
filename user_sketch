@@ -1,0 +1,60 @@
+// LEVEL 2 //
+
+function onSlideLoad() {
+    console.log("Slide loaded - retrieving user data");
+
+    const player = GetPlayer();
+    if (!player) {
+        console.error("GetPlayer returned null or undefined");
+        return;
+    }
+
+    var userName = player.GetVar("data_userName");
+
+    if (!userName) {
+        console.error("userName is not set");
+        return;
+    }
+
+    console.log("userName:", userName);
+
+    const url = `http://localhost:6640/getUserData?userName=${encodeURIComponent(userName)}`;
+
+    console.log("Data to be sent:", url);
+
+    fetch(url, {
+        method: 'GET'
+    })
+    .then(response => {
+        console.log("Fetch response received:", response);
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(result => {
+        console.log("Result:", result);
+        if (result.success) {
+            // Update userAvatar
+            player.SetVar("data_userAvatar", result.userAvatar);
+            console.log("Updated data_userAvatar to:", result.userAvatar);
+
+            // Process yetiScoresLevel1
+            const fetchedYetiScoresLevel2 = result.yetiScoresLevel2 || [];
+            const yetiScoresLevel2String = fetchedYetiScoresLevel2.join(',');
+            player.SetVar("yetiScoresLevel2", yetiScoresLevel2String); // Convert array to comma-separated string
+            console.log("Updated yetiScoresLevel2 to:", yetiScoresLevel2String);
+
+            // Optionally, you could also process the scores here if needed
+            // Example: Update current score, high score, and top scores
+        } else {
+            console.error("Failed to retrieve user data:", result.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error in fetch:', error);
+    });
+}
+
+// Call onSlideLoad when the slide loads
+onSlideLoad();
